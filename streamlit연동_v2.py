@@ -29,7 +29,7 @@ st.set_page_config(page_title="Customer Dashboard",
 
 st.title('🇦🇺 Customer Dashboard')
 
-tab1, tab2, tab3, tab4 = st.tabs(["✅My shop","🙋‍♀️🙋‍♂️Customer","🛒🛍️Items", "👍Recommendation"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["✅My shop","🙋‍♀️🙋‍♂️Customer","🛒🛍️Items", "👍Recommendation", "🔗correaltion"])
 
 
 
@@ -518,11 +518,44 @@ with tab4:
 #         st.session_state.search_input_enter_pressed = False
 #         st.session_state.search_input = item_search
 
+with tab5:
+    st.markdown("### Correaltion")
 
-
-
-
-
+    # cust_order = pd.merge(left=customers_data, right=orders_data, 
+    #                   left_index=True, right_index=True) # merging
+    # cop_data = pd.merge(left=cust_order, right=products_data, 
+    #                 left_index=True, right_index=True) # merging
+    # cop_data["sales"] = cop_data["price"] * cop_data["quantity"] # let's make a sales data
                         
 
-    
+    # sns.set_style("whitegrid") # set the seaborn style
+    # # let's make a correlation matrix for `cop_data`
+    # fig = plt.figure(dpi=100, figsize=(24, 18)) # figure the size
+    # sns.heatmap(cop_data.corr(), annot=True, cmap="Blues") # create a heatmap
+    # plt.title("COP (Customer, Order, Product) Data Correlation", weight="bold", fontsize=30, fontname="fantasy", pad=75) # title
+    # plt.xticks(weight="bold", fontsize=15) # x-ticks
+    # plt.yticks(weight="bold", fontsize=15); # y-ticks
+
+
+    # 데이터 로드
+    customers_data = pd.read_csv("customers.csv")
+    orders_data = pd.read_csv("orders.csv")
+    products_data = pd.read_csv("products.csv")
+    sales_products_data = pd.read_csv("sales_products.csv", sep=",")
+
+    # 데이터 병합
+    cust_order = pd.merge(left=customers_data, right=orders_data, left_on="customer_id", right_on="customer_id")
+    cop_data = pd.merge(left=cust_order, right=sales_products_data, left_on="order_id", right_on="order_id")
+    cop_data["sales"] = cop_data["price_per_unit"] * cop_data["quantity"]
+    numeric_cols = cop_data.select_dtypes(include=np.number)
+    correlation = numeric_cols.corr()
+
+    # Heatmap 생성
+    fig = plt.figure(dpi=100, figsize=(24, 18))
+    sns.heatmap(correlation, annot=True, cmap="Blues")
+    plt.title("COP(Customer, Order, Product) Data Correlation", weight="bold", fontsize=30, fontname="fantasy", pad=75)
+    plt.xticks(weight="bold", fontsize=15)
+    plt.yticks(weight="bold", fontsize=15)
+
+    # Streamlit에서 표시
+    st.pyplot(fig)
